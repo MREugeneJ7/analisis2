@@ -34,14 +34,40 @@ data = pd.read_csv("mallCustomers.csv")
 
 le.fit(data["Genre"])
 data["Genre"] = le.transform(data["Genre"])
-km = KMeans(n_clusters=5, random_state=0, n_init="auto")
-km.fit(data)
 
-plt.scatter(data["Age"],data["Annual Income"],data["Spending Score"], c=km.labels_.astype(float))
+data = data[["Annual Income", "Spending Score", "Age"]]
+#Elbow Method
+wcss = [] 
+for i in range(1, 20): 
+    kmeans = KMeans(n_clusters = i, init = 'k-means++', random_state = 0)
+    kmeans.fit(data) 
+    wcss.append(kmeans.inertia_)
+
+plt.plot(range(1, 20), wcss)
+plt.xlabel('Number of clusters')
+plt.ylabel('WCSS') 
 plt.show()
 
-wardClustering = AgglomerativeClustering(distance_threshold=0, linkage="ward", n_clusters=None)
+km = KMeans(n_clusters=6, random_state=0, n_init="auto")
+km.fit(data)
+
+
+fig = plt.figure()
+ax =fig.add_subplot(projection='3d')
+ax.scatter(data["Annual Income"],data["Spending Score"], data["Age"], c=km.labels_.astype(float))
+ax.scatter(
+            km.cluster_centers_[:,0],
+            km.cluster_centers_[:,1],
+            km.cluster_centers_[:,2],
+            color="red",
+        )
+plt.show()
+
+wardClustering = AgglomerativeClustering(distance_threshold=None, linkage="ward", n_clusters=3, compute_distances=True)
 model = wardClustering.fit(data)
+
+plt.scatter(data["Annual Income"],data["Spending Score"], c=model.labels_.astype(float))
+plt.show()
 
 plt.title("Hierarchical Clustering Dendrogram")
 # plot the top three levels of the dendrogram
@@ -49,8 +75,12 @@ plot_dendrogram(model, truncate_mode="level", p=3)
 plt.xlabel("Number of points in node (or index of point if no parenthesis).")
 plt.show()
 
-singleClustering = AgglomerativeClustering(distance_threshold=0, linkage="single", n_clusters=None)
+singleClustering = AgglomerativeClustering(distance_threshold=6, linkage="single", n_clusters=None)
 model2 = singleClustering.fit(data)
+
+plt.scatter(data["Annual Income"],data["Spending Score"], c=model2.labels_.astype(float))
+plt.show()
+
 
 plt.title("Hierarchical Clustering Dendrogram")
 # plot the top three levels of the dendrogram
@@ -59,8 +89,12 @@ plt.xlabel("Number of points in node (or index of point if no parenthesis).")
 plt.show()
 
 
-centroidClustering = AgglomerativeClustering(distance_threshold=0, linkage="average", n_clusters=None)
+centroidClustering = AgglomerativeClustering(distance_threshold=None, linkage="average", n_clusters=3, compute_distances=True)
 model3 = centroidClustering.fit(data)
+
+plt.scatter(data["Annual Income"],data["Spending Score"], c=model3.labels_.astype(float))
+plt.show()
+
 
 plt.title("Hierarchical Clustering Dendrogram")
 # plot the top three levels of the dendrogram
